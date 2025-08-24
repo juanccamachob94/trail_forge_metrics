@@ -1,0 +1,55 @@
+/etc/systemd/system/employee_metrics.service
+[Unit]
+Description=Employee Metrics Flask App
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=developer
+WorkingDirectory=/home/developer/Documents/employee_metrics_app
+
+# Variables necesarias
+Environment=FLASK_APP=employee_metrics_app.app
+Environment=PYTHONPATH=/home/developer/Documents/employee_metrics_app
+Environment=GITHUB_TOKEN=ghp_abc
+# opcional si configuraste estas variables en el código
+Environment=REPO_OWNER=owner
+Environment=REPO_NAME=name
+Environment=PYTHONUNBUFFERED=1
+
+# Ejecutable del venv
+ExecStart=/home/developer/Documents/employee_metrics_app/venv/bin/flask run --host=0.0.0.0 --port=5000
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
+
+/etc/systemd/system/employee_metrics_update.service
+[Unit]
+Description=Update team metrics (weekly snapshot)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=developer
+WorkingDirectory=/home/developer/Documents/employee_metrics_app
+EnvironmentFile=/etc/default/employee_metrics
+Environment=PYTHONPATH=/home/developer/Documents/employee_metrics_app
+ExecStart=/home/developer/Documents/employee_metrics_app/venv/bin/python -m employee_metrics_app.update_metrics
+
+
+/etc/systemd/system/employee_metrics_update.timer
+[Unit]
+Description=Run team metrics update every Friday 09:00
+
+[Timer]
+OnCalendar=Fri *-*-* 09:00:00
+RandomizedDelaySec=5m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
