@@ -1,0 +1,144 @@
+{% extends 'layout.html' %}
+
+{% block title %}Team Dashboard{% endblock %}
+
+{% block content %}
+<h1>Team Dashboard</h1>
+
+<!-- Summary cards for aggregated metrics -->
+<div class="cards">
+  <div class="card">
+    <h3>Total Commits</h3>
+    <p>{{ summary.commits }}</p>
+  </div>
+  <div class="card">
+    <h3>Created PRs</h3>
+    <p>{{ summary.prs_opened }}</p>
+  </div>
+  <div class="card">
+    <h3>Merged PRs</h3>
+    <p>{{ summary.prs_merged }}</p>
+  </div>
+  <div class="card">
+    <h3>Reviews</h3>
+    <p>{{ summary.reviews }}</p>
+  </div>
+</div>
+
+<!-- Chart displaying group metrics over time -->
+<div class="chart-container">
+  <canvas id="groupChart"></canvas>
+</div>
+
+<script>
+  // Chart data provided by the Flask view.  The `tojson` filter
+  // serialises the Python dictionary into a JSON literal.  Chart.js
+  // consumes this structure directly.
+  const chartData = {{ chart_data|tojson|safe }};
+  const ctx = document.getElementById('groupChart').getContext('2d');
+  const groupChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.labels,
+      datasets: [
+        {
+          label: 'Commits',
+          data: chartData.commits,
+          borderColor: '#ee5a20',
+          backgroundColor: 'rgba(238, 90, 32, 0.2)',
+          tension: 0.1
+        },
+        {
+          label: 'Created PRs',
+          data: chartData.prs_opened,
+          borderColor: '#27ae60',
+          backgroundColor: 'rgba(39, 174, 96, 0.2)',
+          tension: 0.1
+        },
+        {
+          label: 'Merged PRs',
+          data: chartData.prs_merged,
+          borderColor: '#e74c3c',
+          backgroundColor: 'rgba(231, 76, 60, 0.2)',
+          tension: 0.1
+        },
+        {
+          label: 'Reviews',
+          data: chartData.reviews,
+          borderColor: '#8e44ad',
+          backgroundColor: 'rgba(142, 68, 173, 0.2)',
+          tension: 0.1
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
+          },
+          ticks: {
+            color: '#ffffff'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Count'
+          },
+          ticks: {
+            color: '#ffffff'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#ffffff'
+          }
+        }
+      }
+    }
+  });
+</script>
+
+<!-- Action buttons -->
+<div class="actions" style="margin-bottom:1rem;">
+  <a href="{{ url_for('main.add_employee') }}" class="btn">Add Employee</a>
+  <a href="{{ url_for('main.update') }}" class="btn">Update Metrics</a>
+</div>
+
+<!-- Employees table -->
+<h2>Employees</h2>
+<table class="employee-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>GitHub Username</th>
+      <th>Active</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for employee in employees %}
+    <tr>
+      <td>{{ employee.name }}</td>
+      <td>{{ employee.github_username }}</td>
+      <td>{{ 'Yes' if employee.active else 'No' }}</td>
+      <td>
+        <a href="{{ url_for('main.employee_detail', employee_id=employee.id) }}">View</a> |
+        <a href="{{ url_for('main.edit_employee', employee_id=employee.id) }}">Edit</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

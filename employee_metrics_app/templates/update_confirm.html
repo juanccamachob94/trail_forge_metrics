@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+
+{% block title %}Confirm Update{% endblock %}
+
+{% block content %}
+<h1>Confirm Update</h1>
+<p>This action will fetch the latest contribution statistics from GitHub for all active employees. Depending on the number of employees this may take a minute. Do you want to proceed?</p>
+
+<form method="post" class="actions">
+  <button type="submit" class="btn">Yes, Update</button>
+  <a href="{{ url_for('main.index') }}" class="btn">Cancel</a>
+</form>
+{% endblock %}

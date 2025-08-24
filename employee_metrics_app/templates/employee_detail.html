@@ -1,0 +1,110 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ employee.name }} Metrics{% endblock %}
+
+{% block content %}
+<h1>{{ employee.name }}</h1>
+<p><strong>GitHub Username:</strong> {{ employee.github_username }}</p>
+<p><strong>Status:</strong> {{ 'Active' if employee.active else 'Inactive' }}</p>
+
+{% if latest %}
+<h2>Latest Snapshot ({{ latest.timestamp | tzdate_iso }})</h2>
+<div class="cards">
+  <div class="card"><h3>Commits</h3><p>{{ latest.commits }}</p></div>
+  <div class="card"><h3>Created PRs</h3><p>{{ latest.prs_opened }}</p></div>
+  <div class="card"><h3>Merged PRs</h3><p>{{ latest.prs_merged }}</p></div>
+  <div class="card"><h3>Reviews</h3><p>{{ latest.reviews }}</p></div>
+</div>
+{% else %}
+<p>No metrics have been recorded for this employee yet. Trigger an update to collect data.</p>
+{% endif %}
+
+<div class="chart-container">
+  <canvas id="employeeChart"></canvas>
+</div>
+
+<script>
+  const data = {{ chart_data|tojson|safe }};
+  const ctx = document.getElementById('employeeChart').getContext('2d');
+  const employeeChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [
+        {
+          label: 'Commits',
+          data: data.commits,
+          borderColor: '#ee5a20',
+          backgroundColor: 'rgba(238, 90, 32, 0.2)',
+          tension: 0.1
+        },
+        {
+          label: 'Created PRs',
+          data: data.prs_opened,
+          borderColor: '#27ae60',
+          backgroundColor: 'rgba(39, 174, 96, 0.2)',
+          tension: 0.1
+        },
+        {
+          label: 'Merged PRs',
+          data: data.prs_merged,
+          borderColor: '#e74c3c',
+          backgroundColor: 'rgba(231, 76, 60, 0.2)',
+          tension: 0.1
+        },
+        {
+          label: 'Reviews',
+          data: data.reviews,
+          borderColor: '#8e44ad',
+          backgroundColor: 'rgba(142, 68, 173, 0.2)',
+          tension: 0.1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
+          },
+          ticks: {
+            color: '#ffffff'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Count'
+          },
+          ticks: {
+            color: '#ffffff'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#ffffff'
+          }
+        }
+      }
+    }
+  });
+</script>
+
+<div class="actions" style="margin-top:1rem;">
+  <a href="{{ url_for('main.edit_employee', employee_id=employee.id) }}" class="btn">Edit</a>
+  <form action="{{ url_for('main.delete_employee', employee_id=employee.id) }}" method="post" style="display:inline;">
+    <button type="submit" class="btn" onclick="return confirm('Are you sure you want to delete this employee?');">Delete</button>
+  </form>
+  <a href="{{ url_for('main.index') }}" class="btn">Back to Dashboard</a>
+</div>
+{% endblock %}

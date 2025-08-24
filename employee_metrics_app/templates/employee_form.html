@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ 'Edit Employee' if employee else 'Add Employee' }}{% endblock %}
+
+{% block content %}
+<h1>{{ 'Edit Employee' if employee else 'Add Employee' }}</h1>
+<form method="post">
+  <label for="name">Name</label>
+  <input type="text" id="name" name="name" value="{{ employee.name if employee else '' }}" required>
+
+  <label for="github_username">GitHub Username</label>
+  <input type="text" id="github_username" name="github_username" value="{{ employee.github_username if employee else '' }}" required>
+
+  <label>
+    <input type="checkbox" name="active" {% if employee and employee.active %}checked{% elif not employee %}checked{% endif %}>
+    Active
+  </label>
+
+  <div class="actions">
+    <button type="submit" class="btn">Save</button>
+    <a href="{{ url_for('main.index') }}" class="btn">Cancel</a>
+  </div>
+</form>
+{% endblock %}

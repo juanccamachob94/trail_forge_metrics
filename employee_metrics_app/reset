@@ -1,0 +1,24 @@
+cd
+cd Documents/employee_metrics_app/
+source venv/bin/activate
+
+python - <<'PY'
+import os, sys
+print("CWD:", os.getcwd())
+print("sys.path[0:2]:", sys.path[0:2])
+import employee_metrics_app
+print("Package file:", employee_metrics_app.__file__)
+from employee_metrics_app import create_app
+app = create_app()
+print("DB created")
+PY
+
+---
+sudo systemctl restart employee_metrics.service
+
+
+---
+
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
